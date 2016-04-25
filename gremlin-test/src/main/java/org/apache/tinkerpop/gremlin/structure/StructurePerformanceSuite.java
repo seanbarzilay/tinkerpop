@@ -32,7 +32,9 @@ import org.junit.runners.model.RunnerBuilder;
  * For more information on the usage of this suite, please see {@link StructureStandardSuite}.
  *
  * @author Stephen Mallette (http://stephen.genoprime.com)
+ * @deprecated As of release 3.2.1-incubating, replaced by gremlin-benchmarks but not a requirement for provider implementation
  */
+@Deprecated
 public class StructurePerformanceSuite extends AbstractGremlinSuite {
 
     /**

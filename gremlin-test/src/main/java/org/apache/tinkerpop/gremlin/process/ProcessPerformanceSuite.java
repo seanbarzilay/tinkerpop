@@ -37,7 +37,7 @@ import org.junit.runners.model.RunnerBuilder;
  *
  * @author Stephen Mallette (http://stephen.genoprime.com)
  *
- * @deprecated  As of release 3.2.0.  Provider performance tests may be implemented as needed by providers and will not be included as part of the TinkerPop distribution.
+ * @deprecated  As of release 3.2.0-incubating, replaced by gremlin-benchmarks but not a requirement for provider implementation
  */
 @Deprecated
 public class ProcessPerformanceSuite extends AbstractGremlinSuite {
