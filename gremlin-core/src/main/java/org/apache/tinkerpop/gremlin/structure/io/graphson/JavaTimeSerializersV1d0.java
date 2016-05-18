@@ -44,9 +44,9 @@ import java.time.ZonedDateTime;
 /**
  * GraphSON serializers for classes in {@code java.time.*}.
  */
-final class JavaTimeSerializers {
+final class JavaTimeSerializersV1d0 {
 
-    private JavaTimeSerializers() {}
+    private JavaTimeSerializersV1d0() {}
 
     /**
      * Base class for serializing the {@code java.time.*} to ISO-8061 formats.
