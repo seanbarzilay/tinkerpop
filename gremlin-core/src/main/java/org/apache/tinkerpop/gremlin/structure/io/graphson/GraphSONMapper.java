@@ -75,12 +75,18 @@ public class GraphSONMapper implements Mapper<ObjectMapper> {
         final ObjectMapper om = new ObjectMapper();
         om.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
 
-        if (embedTypes) {
-            final TypeResolverBuilder<?> typer = new StdTypeResolverBuilder()
-                    .init(JsonTypeInfo.Id.CLASS, null)
-                    .inclusion(JsonTypeInfo.As.PROPERTY)
-                    .typeProperty(GraphSONTokens.CLASS);
-            om.setDefaultTyping(typer);
+        if (version == GraphSONVersion.V1_0) {
+            if (embedTypes) {
+                final TypeResolverBuilder<?> typer = new StdTypeResolverBuilder()
+                        .init(JsonTypeInfo.Id.CLASS, null)
+                        .inclusion(JsonTypeInfo.As.PROPERTY)
+                        .typeProperty(GraphSONTokens.CLASS);
+                om.setDefaultTyping(typer);
+            }
+        } else if (version == GraphSONVersion.V2_0) {
+
+        } else {
+            throw new IllegalStateException("Unknown GraphSONVersion");
         }
 
         if (normalize)
@@ -88,7 +94,7 @@ public class GraphSONMapper implements Mapper<ObjectMapper> {
 
         // this provider toStrings all unknown classes and converts keys in Map objects that are Object to String.
         final DefaultSerializerProvider provider = new GraphSONSerializerProvider();
-        provider.setDefaultKeySerializer(new GraphSONSerializers.GraphSONKeySerializer());
+        provider.setDefaultKeySerializer(new GraphSONSerializersV1d0.GraphSONKeySerializer());
         om.setSerializerProvider(provider);
 
         om.registerModule(version.getBuilder().create(normalize));

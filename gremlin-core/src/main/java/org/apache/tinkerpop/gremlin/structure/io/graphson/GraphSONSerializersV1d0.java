@@ -58,9 +58,9 @@ import org.apache.tinkerpop.gremlin.process.traversal.step.util.Tree;
  *
  * @author Stephen Mallette (http://stephen.genoprime.com)
  */
-final class GraphSONSerializers {
+final class GraphSONSerializersV1d0 {
 
-    private GraphSONSerializers() {}
+    private GraphSONSerializersV1d0() {}
 
     final static class VertexPropertyJacksonSerializer extends StdSerializer<VertexProperty> {
 
