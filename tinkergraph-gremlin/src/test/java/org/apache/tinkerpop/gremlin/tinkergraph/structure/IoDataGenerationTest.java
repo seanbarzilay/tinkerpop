@@ -23,25 +23,23 @@ import org.apache.tinkerpop.gremlin.AbstractGremlinTest;
 import org.apache.tinkerpop.gremlin.TestHelper;
 import org.apache.tinkerpop.gremlin.algorithm.generator.DistributionGenerator;
 import org.apache.tinkerpop.gremlin.algorithm.generator.PowerLawDistribution;
-import org.apache.tinkerpop.gremlin.structure.Edge;
-import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.apache.tinkerpop.gremlin.structure.T;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.apache.tinkerpop.gremlin.structure.*;
 import org.apache.tinkerpop.gremlin.structure.io.GraphReader;
 import org.apache.tinkerpop.gremlin.structure.io.graphml.GraphMLWriter;
 import org.apache.tinkerpop.gremlin.structure.io.graphson.GraphSONMapper;
+import org.apache.tinkerpop.gremlin.structure.io.graphson.GraphSONReader;
+import org.apache.tinkerpop.gremlin.structure.io.graphson.GraphSONVersion;
 import org.apache.tinkerpop.gremlin.structure.io.graphson.GraphSONWriter;
 import org.apache.tinkerpop.gremlin.structure.io.gryo.GryoReader;
 import org.apache.tinkerpop.gremlin.structure.io.gryo.GryoWriter;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
+import java.util.Iterator;
 import java.util.stream.IntStream;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Less of a test of functionality and more of a tool to help generate data files for TinkerPop.
@@ -49,7 +47,7 @@ import java.util.stream.IntStream;
  * @author Stephen Mallette (http://stephen.genoprime.com)
  */
 public class IoDataGenerationTest {
-    private static String tempPath;
+    private static final String tempPath;
 
     static {
         tempPath = TestHelper.makeTestDataPath(TinkerGraphTest.class, "tinkerpop-io").getPath() + File.separator;
@@ -173,6 +171,23 @@ public class IoDataGenerationTest {
         os.close();
     }
 
+    @Test
+    public void shouldWriteAndReadClassicGraphAsGraphSONV2d0WithTypes() throws IOException {
+        Graph g = TinkerFactory.createClassic();
+        final OutputStream os = new FileOutputStream(tempPath + "tinkerpop-classic-V2d0-typed.json");
+        GraphSONWriter.build().mapper(GraphSONMapper.build().version(GraphSONVersion.V2_0).typeInfo(GraphSONMapper.TypeInfo.PARTIAL_TYPES).create())
+                .create().writeGraph(os, g);
+        os.close();
+
+        Graph readG = TinkerGraph.open();
+        final InputStream is = new FileInputStream(tempPath + "tinkerpop-classic-V2d0-typed.json");
+        GraphSONReader.build().mapper(GraphSONMapper.build().version(GraphSONVersion.V2_0).typeInfo(GraphSONMapper.TypeInfo.PARTIAL_TYPES).create()).create().readGraph(is, readG);
+        is.close();
+
+        assertEquals(approximateGraphsCheck(g, readG), true);
+    }
+
+
     /**
      * No assertions.  Just write out the graph for convenience.
      */
@@ -274,5 +289,79 @@ public class IoDataGenerationTest {
         final OutputStream os4 = new FileOutputStream(tempPath + "grateful-dead-typed.json");
         GraphSONWriter.build().mapper(GraphSONMapper.build().embedTypes(true).create()).create().writeGraph(os4, g);
         os4.close();
+    }
+
+    @Test
+    public void shouldWriteGratefulDeadGraphSONV2d0() throws IOException {
+        final TinkerGraph g = TinkerGraph.open();
+        final TinkerGraph readG = TinkerGraph.open();
+
+        final GraphReader reader = GryoReader.build().create();
+        try (final InputStream stream = AbstractGremlinTest.class.getResourceAsStream("/org/apache/tinkerpop/gremlin/structure/io/gryo/grateful-dead.kryo")) {
+            reader.readGraph(stream, g);
+        }
+        final OutputStream os2 = new FileOutputStream(tempPath + "grateful-dead-V2d0-typed.json");
+        GraphSONWriter.build().mapper(GraphSONMapper.build().version(GraphSONVersion.V2_0).typeInfo(GraphSONMapper.TypeInfo.PARTIAL_TYPES).create()).create().writeGraph(os2, g);
+        os2.close();
+
+        final InputStream is = new FileInputStream(tempPath + "grateful-dead-V2d0-typed.json");
+        GraphSONReader.build().mapper(GraphSONMapper.build().version(GraphSONVersion.V2_0).typeInfo(GraphSONMapper.TypeInfo.PARTIAL_TYPES).create()).create().readGraph(is, readG);
+        is.close();
+
+        assertEquals(approximateGraphsCheck(g, readG), true);
+    }
+
+    /**
+     * Checks sequentially vertices and egdes of both graphs. Will check sequentially Vertex IDs, Vertex Properties IDs
+     * and values and classes. Then same for edges. To use when serializing a Graph and deserializing the supposedly
+     * same Graph.
+     */
+    private boolean approximateGraphsCheck(Graph g1, Graph g2) {
+        Iterator<Vertex> itV = g1.vertices();
+        Iterator<Vertex> itVRead = g2.vertices();
+
+        while (itV.hasNext()) {
+            Vertex v = itV.next();
+            Vertex vRead = itVRead.next();
+            // Will only check IDs but that's 'good' enough.
+            if (!v.equals(vRead)) {
+                return false;
+            }
+
+            Iterator itVP = v.properties();
+            Iterator itVPRead = vRead.properties();
+            while (itVP.hasNext()) {
+                VertexProperty vp = (VertexProperty) itVP.next();
+                VertexProperty vpRead = (VertexProperty) itVPRead.next();
+                if (!vp.value().equals(vpRead.value())) {
+                    return false;
+                }
+            }
+        }
+
+
+        Iterator<Edge> itE = g1.edges();
+        Iterator<Edge> itERead = g2.edges();
+
+        while (itE.hasNext()) {
+            Edge e = itE.next();
+            Edge eRead = itERead.next();
+            // Will only check IDs but that's good enough.
+            if (!e.equals(eRead)) {
+                return false;
+            }
+
+            Iterator itEP = e.properties();
+            Iterator itEPRead = eRead.properties();
+            while (itEP.hasNext()) {
+                Property ep = (Property) itEP.next();
+                Property epRead = (Property) itEPRead.next();
+                if (!ep.value().equals(epRead.value())
+                        || !ep.equals(epRead)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }

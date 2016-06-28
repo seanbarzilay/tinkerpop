@@ -42,15 +42,18 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static org.apache.tinkerpop.gremlin.structure.io.graphson.GraphSONUtil.*;
+
 /**
  * GraphSON serializers for graph-based objects such as vertices, edges, properties, and paths. These serializers
  * present a generalized way to serialize the implementations of core interfaces.
  *
  * @author Stephen Mallette (http://stephen.genoprime.com)
  */
-final class GraphSONSerializersV1d0 {
+public class GraphSONSerializersV2d0 {
 
-    private GraphSONSerializersV1d0() {}
+    private GraphSONSerializersV2d0() {
+    }
 
     final static class VertexPropertyJacksonSerializer extends StdSerializer<VertexProperty> {
 
@@ -85,6 +88,7 @@ final class GraphSONSerializersV1d0 {
                 throws IOException {
             ser(property, jsonGenerator, serializerProvider, null);
         }
+
         @Override
         public void serializeWithType(final Property property, final JsonGenerator jsonGenerator,
                                       final SerializerProvider serializerProvider, final TypeSerializer typeSerializer) throws IOException {
@@ -93,11 +97,12 @@ final class GraphSONSerializersV1d0 {
 
         private static void ser(final Property property, final JsonGenerator jsonGenerator,
                                 final SerializerProvider serializerProvider, final TypeSerializer typeSerializer) throws IOException {
-            jsonGenerator.writeStartObject();
-            if (typeSerializer != null) jsonGenerator.writeStringField(GraphSONTokens.CLASS, HashMap.class.getName());
+            writeStartObject(property, jsonGenerator, typeSerializer);
+
             serializerProvider.defaultSerializeField(GraphSONTokens.KEY, property.key(), jsonGenerator);
             serializerProvider.defaultSerializeField(GraphSONTokens.VALUE, property.value(), jsonGenerator);
-            jsonGenerator.writeEndObject();
+
+            writeEndObject(property, jsonGenerator, typeSerializer);
         }
     }
 
@@ -116,6 +121,7 @@ final class GraphSONSerializersV1d0 {
                 throws IOException {
             ser(edge, jsonGenerator, serializerProvider, null);
         }
+
         @Override
         public void serializeWithType(final Edge edge, final JsonGenerator jsonGenerator,
                                       final SerializerProvider serializerProvider, final TypeSerializer typeSerializer) throws IOException {
@@ -123,11 +129,10 @@ final class GraphSONSerializersV1d0 {
         }
 
         private void ser(final Edge edge, final JsonGenerator jsonGenerator,
-                                final SerializerProvider serializerProvider, final TypeSerializer typeSerializer) throws IOException {
-            jsonGenerator.writeStartObject();
-            if (typeSerializer != null) jsonGenerator.writeStringField(GraphSONTokens.CLASS, HashMap.class.getName());
-            GraphSONUtil.writeWithType(GraphSONTokens.ID, edge.id(), jsonGenerator, serializerProvider, typeSerializer);
+                         final SerializerProvider serializerProvider, final TypeSerializer typeSerializer) throws IOException {
+            writeStartObject(edge, jsonGenerator, typeSerializer);
 
+            GraphSONUtil.writeWithType(GraphSONTokens.ID, edge.id(), jsonGenerator, serializerProvider, typeSerializer);
             jsonGenerator.writeStringField(GraphSONTokens.LABEL, edge.label());
             jsonGenerator.writeStringField(GraphSONTokens.TYPE, GraphSONTokens.EDGE);
             jsonGenerator.writeStringField(GraphSONTokens.IN_LABEL, edge.inVertex().label());
@@ -135,22 +140,25 @@ final class GraphSONSerializersV1d0 {
             GraphSONUtil.writeWithType(GraphSONTokens.IN, edge.inVertex().id(), jsonGenerator, serializerProvider, typeSerializer);
             GraphSONUtil.writeWithType(GraphSONTokens.OUT, edge.outVertex().id(), jsonGenerator, serializerProvider, typeSerializer);
             writeProperties(edge, jsonGenerator, serializerProvider, typeSerializer);
-            jsonGenerator.writeEndObject();
+
+            writeEndObject(edge, jsonGenerator, typeSerializer);
         }
 
         private void writeProperties(final Edge edge, final JsonGenerator jsonGenerator,
-                                            final SerializerProvider serializerProvider,
-                                            final TypeSerializer typeSerializer) throws IOException {
+                                     final SerializerProvider serializerProvider,
+                                     final TypeSerializer typeSerializer) throws IOException {
             final Iterator<Property<Object>> elementProperties = normalize ?
                     IteratorUtils.list(edge.properties(), Comparators.PROPERTY_COMPARATOR).iterator() : edge.properties();
             if (elementProperties.hasNext()) {
-                jsonGenerator.writeObjectFieldStart(GraphSONTokens.PROPERTIES);
-                if (typeSerializer != null) jsonGenerator.writeStringField(GraphSONTokens.CLASS, HashMap.class.getName());
+                jsonGenerator.writeFieldName(GraphSONTokens.PROPERTIES);
+                writeStartObject(edge, jsonGenerator, typeSerializer);
+
                 while (elementProperties.hasNext()) {
                     final Property<Object> elementProperty = elementProperties.next();
                     GraphSONUtil.writeWithType(elementProperty.key(), elementProperty.value(), jsonGenerator, serializerProvider, typeSerializer);
                 }
-                jsonGenerator.writeEndObject();
+
+                writeEndObject(edge, jsonGenerator, typeSerializer);
             }
         }
 
@@ -175,49 +183,44 @@ final class GraphSONSerializersV1d0 {
         public void serializeWithType(final Vertex vertex, final JsonGenerator jsonGenerator,
                                       final SerializerProvider serializerProvider, final TypeSerializer typeSerializer) throws IOException {
             ser(vertex, jsonGenerator, serializerProvider, typeSerializer);
-
         }
 
         private void ser(final Vertex vertex, final JsonGenerator jsonGenerator,
-                                final SerializerProvider serializerProvider, final TypeSerializer typeSerializer)
+                         final SerializerProvider serializerProvider, final TypeSerializer typeSerializer)
                 throws IOException {
-            jsonGenerator.writeStartObject();
-            if (typeSerializer != null) jsonGenerator.writeStringField(GraphSONTokens.CLASS, HashMap.class.getName());
+            writeStartObject(vertex, jsonGenerator, typeSerializer);
+
             GraphSONUtil.writeWithType(GraphSONTokens.ID, vertex.id(), jsonGenerator, serializerProvider, typeSerializer);
             jsonGenerator.writeStringField(GraphSONTokens.LABEL, vertex.label());
             jsonGenerator.writeStringField(GraphSONTokens.TYPE, GraphSONTokens.VERTEX);
             writeProperties(vertex, jsonGenerator, serializerProvider, typeSerializer);
-            jsonGenerator.writeEndObject();
+
+            writeEndObject(vertex, jsonGenerator, typeSerializer);
         }
 
         private void writeProperties(final Vertex vertex, final JsonGenerator jsonGenerator,
-                                            final SerializerProvider serializerProvider, final TypeSerializer typeSerializer) throws IOException {
-            jsonGenerator.writeObjectFieldStart(GraphSONTokens.PROPERTIES);
-            if (typeSerializer != null) jsonGenerator.writeStringField(GraphSONTokens.CLASS, HashMap.class.getName());
+                                     final SerializerProvider serializerProvider, final TypeSerializer typeSerializer) throws IOException {
+            jsonGenerator.writeFieldName(GraphSONTokens.PROPERTIES);
+            writeStartObject(vertex, jsonGenerator, typeSerializer);
 
             final List<String> keys = normalize ?
                     IteratorUtils.list(vertex.keys().iterator(), Comparator.naturalOrder()) : new ArrayList<>(vertex.keys());
             for (String key : keys) {
                 final Iterator<VertexProperty<Object>> vertexProperties = normalize ?
                         IteratorUtils.list(vertex.properties(key), Comparators.PROPERTY_COMPARATOR).iterator() : vertex.properties(key);
-
                 if (vertexProperties.hasNext()) {
-                    jsonGenerator.writeArrayFieldStart(key);
-                    if (typeSerializer != null) {
-                        jsonGenerator.writeString(ArrayList.class.getName());
-                        jsonGenerator.writeStartArray();
-                    }
+                    jsonGenerator.writeFieldName(key);
+                    writeStartArray(vertex, jsonGenerator, typeSerializer);
 
                     while (vertexProperties.hasNext()) {
                         serializerVertexProperty(vertexProperties.next(), jsonGenerator, serializerProvider, typeSerializer, normalize, false);
                     }
 
-                    jsonGenerator.writeEndArray();
-                    if (typeSerializer != null) jsonGenerator.writeEndArray();
+                    writeEndArray(vertex, jsonGenerator, typeSerializer);
                 }
             }
 
-            jsonGenerator.writeEndObject();
+            writeEndObject(vertex, jsonGenerator, typeSerializer);
         }
 
     }
@@ -227,6 +230,7 @@ final class GraphSONSerializersV1d0 {
         public PathJacksonSerializer() {
             super(Path.class);
         }
+
         @Override
         public void serialize(final Path path, final JsonGenerator jsonGenerator, final SerializerProvider serializerProvider)
                 throws IOException, JsonGenerationException {
@@ -239,17 +243,19 @@ final class GraphSONSerializersV1d0 {
                 throws IOException, JsonProcessingException {
             ser(path, jsonGenerator, typeSerializer);
         }
+
         private static void ser(final Path path, final JsonGenerator jsonGenerator, final TypeSerializer typeSerializer)
                 throws IOException {
-            jsonGenerator.writeStartObject();
-            if (typeSerializer != null) jsonGenerator.writeStringField(GraphSONTokens.CLASS, HashMap.class.getName());
+            writeStartObject(path, jsonGenerator, typeSerializer);
+
             jsonGenerator.writeObjectField(GraphSONTokens.LABELS, path.labels());
             jsonGenerator.writeObjectField(GraphSONTokens.OBJECTS, path.objects());
-            jsonGenerator.writeEndObject();
+
+            writeEndObject(path, jsonGenerator, typeSerializer);
         }
 
     }
-    
+
     final static class TreeJacksonSerializer extends StdSerializer<Tree> {
 
         public TreeJacksonSerializer() {
@@ -260,32 +266,31 @@ final class GraphSONSerializersV1d0 {
         public void serialize(final Tree tree, final JsonGenerator jsonGenerator, final SerializerProvider serializerProvider) throws IOException, JsonGenerationException {
             ser(tree, jsonGenerator, null);
         }
-        
+
         @Override
         public void serializeWithType(final Tree tree, final JsonGenerator jsonGenerator,
                                       final SerializerProvider serializerProvider, final TypeSerializer typeSerializer)
                 throws IOException, JsonProcessingException {
             ser(tree, jsonGenerator, typeSerializer);
         }
-        
+
         private static void ser(final Tree tree, final JsonGenerator jsonGenerator, final TypeSerializer typeSerializer)
                 throws IOException {
-            jsonGenerator.writeStartObject(); 
-            if (typeSerializer != null) jsonGenerator.writeStringField(GraphSONTokens.CLASS, HashMap.class.getName());
-            
+            writeStartObject(tree, jsonGenerator, typeSerializer);
+
             Set<Map.Entry<Element, Tree>> set = tree.entrySet();
-            for(Map.Entry<Element, Tree> entry : set)
-            {
-                jsonGenerator.writeObjectFieldStart(entry.getKey().id().toString());
-                if (typeSerializer != null) jsonGenerator.writeStringField(GraphSONTokens.CLASS, HashMap.class.getName());
-                jsonGenerator.writeObjectField(GraphSONTokens.KEY, entry.getKey()); 
+            for (Map.Entry<Element, Tree> entry : set) {
+                jsonGenerator.writeFieldName(entry.getKey().id().toString());
+                writeStartObject(entry, jsonGenerator, typeSerializer);
+                jsonGenerator.writeObjectField(GraphSONTokens.KEY, entry.getKey());
                 jsonGenerator.writeObjectField(GraphSONTokens.VALUE, entry.getValue());
-                jsonGenerator.writeEndObject();
+                writeEndObject(entry, jsonGenerator, typeSerializer);
             }
-            jsonGenerator.writeEndObject();
+
+            writeEndObject(tree, jsonGenerator, typeSerializer);
         }
-    } 
-    
+    }
+
     /**
      * Maps in the JVM can have {@link Object} as a key, but in JSON they must be a {@link String}.
      */
@@ -295,6 +300,7 @@ final class GraphSONSerializersV1d0 {
         public void serialize(final Object o, final JsonGenerator jsonGenerator, final SerializerProvider serializerProvider) throws IOException {
             ser(o, jsonGenerator, serializerProvider);
         }
+
         @Override
         public void serializeWithType(final Object o, final JsonGenerator jsonGenerator,
                                       final SerializerProvider serializerProvider, final TypeSerializer typeSerializer) throws IOException {
@@ -331,11 +337,11 @@ final class GraphSONSerializersV1d0 {
             final Map<String, Object> m = new HashMap<>();
             m.put(GraphSONTokens.ORIGINAL, getStepsAsList(te.getOriginalTraversal()));
 
-            final List<Pair<TraversalStrategy, Traversal.Admin<?,?>>> strategyTraversals = te.getStrategyTraversals();
+            final List<Pair<TraversalStrategy, Traversal.Admin<?, ?>>> strategyTraversals = te.getStrategyTraversals();
 
-            final List<Map<String,Object>> intermediates = new ArrayList<>();
+            final List<Map<String, Object>> intermediates = new ArrayList<>();
             for (final Pair<TraversalStrategy, Traversal.Admin<?, ?>> pair : strategyTraversals) {
-                final Map<String,Object> intermediate = new HashMap<>();
+                final Map<String, Object> intermediate = new HashMap<>();
                 intermediate.put(GraphSONTokens.STRATEGY, pair.getValue0().toString());
                 intermediate.put(GraphSONTokens.CATEGORY, pair.getValue0().getTraversalCategory().getSimpleName());
                 intermediate.put(GraphSONTokens.TRAVERSAL, getStepsAsList(pair.getValue1()));
@@ -351,7 +357,7 @@ final class GraphSONSerializersV1d0 {
             jsonGenerator.writeObject(m);
         }
 
-        private List<String> getStepsAsList(final Traversal.Admin<?,?> t) {
+        private List<String> getStepsAsList(final Traversal.Admin<?, ?> t) {
             final List<String> steps = new ArrayList<>();
             t.getSteps().iterator().forEachRemaining(s -> steps.add(s.toString()));
             return steps;
@@ -410,13 +416,14 @@ final class GraphSONSerializersV1d0 {
                                                  final SerializerProvider serializerProvider,
                                                  final TypeSerializer typeSerializer, final boolean normalize,
                                                  final boolean includeLabel) throws IOException {
-        jsonGenerator.writeStartObject();
-        if (typeSerializer != null) jsonGenerator.writeStringField(GraphSONTokens.CLASS, HashMap.class.getName());
+        writeStartObject(property, jsonGenerator, typeSerializer);
+
         GraphSONUtil.writeWithType(GraphSONTokens.ID, property.id(), jsonGenerator, serializerProvider, typeSerializer);
         GraphSONUtil.writeWithType(GraphSONTokens.VALUE, property.value(), jsonGenerator, serializerProvider, typeSerializer);
         if (includeLabel) jsonGenerator.writeStringField(GraphSONTokens.LABEL, property.label());
         tryWriteMetaProperties(property, jsonGenerator, serializerProvider, typeSerializer, normalize);
-        jsonGenerator.writeEndObject();
+
+        writeEndObject(property, jsonGenerator, typeSerializer);
     }
 
     private static void tryWriteMetaProperties(final VertexProperty property, final JsonGenerator jsonGenerator,
@@ -441,15 +448,20 @@ final class GraphSONSerializersV1d0 {
     private static void writeMetaProperties(final VertexProperty property, final JsonGenerator jsonGenerator,
                                             final SerializerProvider serializerProvider,
                                             final TypeSerializer typeSerializer, final boolean normalize) throws IOException {
-        jsonGenerator.writeObjectFieldStart(GraphSONTokens.PROPERTIES);
-        if (typeSerializer != null) jsonGenerator.writeStringField(GraphSONTokens.CLASS, HashMap.class.getName());
+        jsonGenerator.writeFieldName(GraphSONTokens.PROPERTIES);
+        writeStartObject(property, jsonGenerator, typeSerializer);
+
         final Iterator<Property<Object>> metaProperties = normalize ?
-                IteratorUtils.list(( Iterator<Property<Object>>) property.properties(), Comparators.PROPERTY_COMPARATOR).iterator() : property.properties();
+                IteratorUtils.list((Iterator<Property<Object>>) property.properties(), Comparators.PROPERTY_COMPARATOR).iterator() : property.properties();
         while (metaProperties.hasNext()) {
             final Property<Object> metaProperty = metaProperties.next();
             GraphSONUtil.writeWithType(metaProperty.key(), metaProperty.value(), jsonGenerator, serializerProvider, typeSerializer);
         }
-        jsonGenerator.writeEndObject();
+
+        writeEndObject(property, jsonGenerator, typeSerializer);
     }
 
 }
+
+
+
