@@ -21,7 +21,6 @@ package org.apache.tinkerpop.gremlin.structure.io.graphson;
 import org.apache.tinkerpop.shaded.jackson.databind.JsonDeserializer;
 import org.apache.tinkerpop.shaded.jackson.databind.module.SimpleModule;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 

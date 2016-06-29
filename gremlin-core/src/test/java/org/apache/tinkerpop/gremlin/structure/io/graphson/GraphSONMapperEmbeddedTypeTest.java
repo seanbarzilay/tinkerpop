@@ -19,8 +19,6 @@
 package org.apache.tinkerpop.gremlin.structure.io.graphson;
 
 import org.apache.tinkerpop.shaded.jackson.databind.ObjectMapper;
-import org.apache.tinkerpop.shaded.kryo.io.Input;
-import org.apache.tinkerpop.shaded.kryo.io.Output;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
