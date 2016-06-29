@@ -227,9 +227,9 @@ public class GraphSONMessageSerializerV2d0Test {
         final JsonNode edgeAsJson = converted.get(0);
         assertNotNull(edgeAsJson);
 
-        assertEquals(((Long) e.id()).longValue(), edgeAsJson.get(GraphSONTokens.ID).get(1).asLong());  // lossy
-        assertEquals(((Long) v1.id()).longValue(), edgeAsJson.get(GraphSONTokens.OUT).get(1).asLong());// lossy
-        assertEquals(((Long) v2.id()).longValue(), edgeAsJson.get(GraphSONTokens.IN).get(1).asLong()); // lossy
+        assertEquals(((Long) e.id()).longValue(), edgeAsJson.get(GraphSONTokens.ID).get(1).asLong());
+        assertEquals(((Long) v1.id()).longValue(), edgeAsJson.get(GraphSONTokens.OUT).get(1).asLong());
+        assertEquals(((Long) v2.id()).longValue(), edgeAsJson.get(GraphSONTokens.IN).get(1).asLong());
         assertEquals(e.label(), edgeAsJson.get(GraphSONTokens.LABEL).asText());
         assertEquals(GraphSONTokens.EDGE, edgeAsJson.get(GraphSONTokens.TYPE).asText());
 
@@ -434,7 +434,7 @@ public class GraphSONMessageSerializerV2d0Test {
                                  .get("properties").get("name").get(0).get("value").asText());
     }
 
-    private static class FunObject {
+    private class FunObject {
         private String val;
 
         public FunObject(String val) {

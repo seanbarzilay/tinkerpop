@@ -33,7 +33,7 @@ import org.apache.tinkerpop.shaded.jackson.databind.ser.std.ToStringSerializer;
  */
 final class GraphSONSerializerProvider extends DefaultSerializerProvider {
     private static final long serialVersionUID = 1L;
-    private final JsonSerializer<Object> unknownTypeSerializer;
+    private static JsonSerializer<Object> unknownTypeSerializer = new ToStringSerializer();
 
     public GraphSONSerializerProvider(GraphSONVersion version) {
         super();
@@ -47,17 +47,8 @@ final class GraphSONSerializerProvider extends DefaultSerializerProvider {
     }
 
     protected GraphSONSerializerProvider(final SerializerProvider src,
-                                         final SerializationConfig config, final SerializerFactory f,
-                                         final GraphSONVersion version) {
+                                         final SerializationConfig config, final SerializerFactory f) {
         super(src, config, f);
-        if (version == GraphSONVersion.V1_0) {
-            setDefaultKeySerializer(new GraphSONSerializersV1d0.GraphSONKeySerializer());
-            unknownTypeSerializer = new ToStringSerializer();
-        } else {
-            setDefaultKeySerializer(new GraphSONSerializersV2d0.GraphSONKeySerializer());
-            unknownTypeSerializer = new ToStringGraphSONSerializer();
-        }
-
     }
 
     @Override
@@ -68,6 +59,6 @@ final class GraphSONSerializerProvider extends DefaultSerializerProvider {
     @Override
     public GraphSONSerializerProvider createInstance(final SerializationConfig config,
                                                      final SerializerFactory jsf) {
-        return new GraphSONSerializerProvider(this, config, jsf, GraphSONVersion.V1_0);
+        return new GraphSONSerializerProvider(this, config, jsf);
     }
 }
