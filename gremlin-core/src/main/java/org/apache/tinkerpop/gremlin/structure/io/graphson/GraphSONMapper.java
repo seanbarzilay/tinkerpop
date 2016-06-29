@@ -63,15 +63,13 @@ public class GraphSONMapper implements Mapper<ObjectMapper> {
     private final GraphSONVersion version;
     private final TypeInfo typeInfo;
 
-    private GraphSONMapper(final List<SimpleModule> customModules, final boolean loadCustomSerializers,
-                           final boolean normalize, final boolean embedTypes, final GraphSONVersion version,
-                           final TypeInfo typeInfo) {
-        this.customModules = customModules;
-        this.loadCustomSerializers = loadCustomSerializers;
-        this.normalize = normalize;
-        this.embedTypes = embedTypes;
-        this.version = version;
-        this.typeInfo = typeInfo;
+    private GraphSONMapper(final Builder builder) {
+        this.customModules = builder.customModules;
+        this.loadCustomSerializers = builder.loadCustomModules;
+        this.normalize = builder.normalize;
+        this.embedTypes = builder.embedTypes;
+        this.version = builder.version;
+        this.typeInfo = builder.typeInfo;
     }
 
     @Override
@@ -240,7 +238,7 @@ public class GraphSONMapper implements Mapper<ObjectMapper> {
                 simpleModules.stream().map(Pair::getValue1).forEach(this.customModules::add);
             });
 
-            return new GraphSONMapper(customModules, loadCustomModules, normalize, embedTypes, version, typeInfo);
+            return new GraphSONMapper(this);
         }
 
     }
