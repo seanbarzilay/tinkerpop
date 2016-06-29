@@ -32,6 +32,13 @@ Please see the link:https://github.com/apache/incubator-tinkerpop/blob/3.2.1/CHA
 Upgrading for Users
 ~~~~~~~~~~~~~~~~~~~
 
+GraphSON 2.0
+^^^^^^^^^^^^
+
+GraphSON 2.0 has been introduced to improve and normalize the format of types embedding in GraphSON. Please see
+link:http://tinkerpop.apache.org/docs/3.2.1-incubating/reference/#graphson-2.0-types[Reference Documentation -
+GraphSON 2.0] and link:https://issues.apache.org/jira/browse/TINKERPOP-1274[TINKERPOP-1274].
+
 Gephi Plugin
 ^^^^^^^^^^^^
 
