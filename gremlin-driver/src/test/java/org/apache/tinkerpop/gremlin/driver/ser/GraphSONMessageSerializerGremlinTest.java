@@ -30,14 +30,19 @@ import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Property;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
+import org.apache.tinkerpop.gremlin.structure.io.graphson.GraphSONMapper;
 import org.apache.tinkerpop.gremlin.structure.io.graphson.GraphSONTokens;
+import org.apache.tinkerpop.gremlin.structure.io.graphson.GraphSONVersion;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerFactory;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerGraph;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import org.apache.tinkerpop.shaded.jackson.databind.util.StdDateFormat;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -50,16 +55,27 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 /**
- * Serializer tests that cover non-lossy serialization/deserialization methods for GraphSONMessage.
+ * Serializer tests that cover non-lossy serialization/deserialization methods.
  *
  * @author Stephen Mallette (http://stephen.genoprime.com)
  */
-public class GraphSONMessageSerializerGremlinV2d0Test {
+@RunWith(Parameterized.class)
+public class GraphSONMessageSerializerGremlinTest {
+
+    @Parameterized.Parameters(name = "{0}")
+    public static Iterable<Object[]> data() {
+        return Arrays.asList(new Object[][]{
+                {new GraphSONMessageSerializerGremlinV1d0()},
+                {new GraphSONMessageSerializerGremlinV2d0()},
+        });
+    }
+
     private UUID requestId = UUID.fromString("6457272A-4018-4538-B9AE-08DD5DDC0AA1");
     private ResponseMessage.Builder responseMessageBuilder = ResponseMessage.build(requestId);
     private static ByteBufAllocator allocator = UnpooledByteBufAllocator.DEFAULT;
 
-    public MessageSerializer serializer = new GraphSONMessageSerializerGremlinV2d0();
+    @Parameterized.Parameter
+    public MessageSerializer serializer;
 
     @Test
     public void shouldSerializeIterable() throws Exception {

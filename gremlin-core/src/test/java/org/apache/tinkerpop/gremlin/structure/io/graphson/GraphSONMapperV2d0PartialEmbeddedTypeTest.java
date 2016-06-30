@@ -46,6 +46,7 @@ import java.util.UUID;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.fail;
 
 /**
@@ -58,83 +59,6 @@ public class GraphSONMapperV2d0PartialEmbeddedTypeTest {
             .typeInfo(GraphSONMapper.TypeInfo.PARTIAL_TYPES)
             .create()
             .createMapper();
-
-    @Test
-    public void shouldHandleDuration()throws Exception  {
-        final Duration o = Duration.ZERO;
-        assertEquals(o, serializeDeserialize(o, Duration.class));
-    }
-    @Test
-    public void shouldHandleInstant()throws Exception  {
-        final Instant o = Instant.ofEpochMilli(System.currentTimeMillis());
-        assertEquals(o, serializeDeserialize(o, Instant.class));
-    }
-
-    @Test
-    public void shouldHandleLocalDate()throws Exception  {
-        final LocalDate o = LocalDate.now();
-        assertEquals(o, serializeDeserialize(o, LocalDate.class));
-    }
-
-    @Test
-    public void shouldHandleLocalDateTime()throws Exception  {
-        final LocalDateTime o = LocalDateTime.now();
-        assertEquals(o, serializeDeserialize(o, LocalDateTime.class));
-    }
-
-    @Test
-    public void shouldHandleLocalTime()throws Exception  {
-        final LocalTime o = LocalTime.now();
-        assertEquals(o, serializeDeserialize(o, LocalTime.class));
-    }
-
-    @Test
-    public void shouldHandleMonthDay()throws Exception  {
-        final MonthDay o = MonthDay.now();
-        assertEquals(o, serializeDeserialize(o, MonthDay.class));
-    }
-
-    @Test
-    public void shouldHandleOffsetDateTime()throws Exception  {
-        final OffsetDateTime o = OffsetDateTime.now();
-        assertEquals(o, serializeDeserialize(o, OffsetDateTime.class));
-    }
-
-    @Test
-    public void shouldHandleOffsetTime()throws Exception  {
-        final OffsetTime o = OffsetTime.now();
-        assertEquals(o, serializeDeserialize(o, OffsetTime.class));
-    }
-
-    @Test
-    public void shouldHandlePeriod()throws Exception  {
-        final Period o = Period.ofDays(3);
-        assertEquals(o, serializeDeserialize(o, Period.class));
-    }
-
-    @Test
-    public void shouldHandleYear()throws Exception  {
-        final Year o = Year.now();
-        assertEquals(o, serializeDeserialize(o, Year.class));
-    }
-
-    @Test
-    public void shouldHandleYearMonth()throws Exception  {
-        final YearMonth o = YearMonth.now();
-        assertEquals(o, serializeDeserialize(o, YearMonth.class));
-    }
-
-    @Test
-    public void shouldHandleZonedDateTime()throws Exception  {
-        final ZonedDateTime o = ZonedDateTime.now();
-        assertEquals(o, serializeDeserialize(o, ZonedDateTime.class));
-    }
-
-    @Test
-    public void shouldHandleZonedOffset()throws Exception  {
-        final ZoneOffset o  = ZonedDateTime.now().getOffset();
-        assertEquals(o, serializeDeserialize(o, ZoneOffset.class));
-    }
 
     @Test
     public void shouldHandleDurationAuto() throws Exception {
@@ -216,6 +140,7 @@ public class GraphSONMapperV2d0PartialEmbeddedTypeTest {
 
     @Test
     public void shouldSerializeDeserializeNestedCollectionsAndMapAndTypedValuesCorrectly() throws Exception {
+        // Trying to fail the TypeDeserializer type detection
         UUID uuid = UUID.randomUUID();
         List myList = new ArrayList<>();
 
@@ -261,6 +186,42 @@ public class GraphSONMapperV2d0PartialEmbeddedTypeTest {
         funObject.setVal("test");
         assertEquals(funObject.toString(), serializeDeserialize(funObject, FunObject.class).toString());
         assertEquals(funObject.getClass(), serializeDeserialize(funObject, FunObject.class).getClass());
+    }
+
+    @Test
+    public void shouldLooseTypesInfoWithGraphSONNoType() throws Exception {
+        ObjectMapper mapper = GraphSONMapper.build()
+                .version(GraphSONVersion.V2_0)
+                .typeInfo(GraphSONMapper.TypeInfo.NO_TYPES)
+                .create()
+                .createMapper();
+
+        UUID uuid = UUID.randomUUID();
+        List myList = new ArrayList<>();
+
+        List myList2 = new ArrayList<>();
+        myList2.add(UUID.randomUUID());
+        myList2.add(33L);
+        myList2.add(84);
+        Map map2 = new HashMap<>();
+        map2.put("eheh", UUID.randomUUID());
+        map2.put("normal", "normal");
+        myList2.add(map2);
+
+        Map<String, Object> map1 = new HashMap<>();
+        map1.put("hello", "world");
+        map1.put("test", uuid);
+        map1.put("hehe", myList2);
+        myList.add(map1);
+
+        myList.add("kjkj");
+        myList.add(UUID.randomUUID());
+
+        String json = mapper.writeValueAsString(myList);
+        Object read = mapper.readValue(json, Object.class);
+
+        // Not equals because of type loss
+        assertNotEquals(myList, read);
     }
 
 

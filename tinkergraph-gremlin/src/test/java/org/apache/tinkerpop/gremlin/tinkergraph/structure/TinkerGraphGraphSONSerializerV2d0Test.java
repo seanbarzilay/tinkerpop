@@ -56,37 +56,6 @@ public class TinkerGraphGraphSONSerializerV2d0Test {
             .create();
 
     @Test
-    public void shouldSerializeTinkerGraphToGraphSONWithPartialTypes() throws IOException {
-        GraphWriter writer = getWriter(defaultMapperV2d0);
-        try (final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            writer.writeGraph(out, baseModern);
-            String json = out.toString();
-            assertEquals(json, "{\"id\":1,\"label\":\"person\",\"outE\":{\"created\":[{\"id\":9,\"inV\":3,\"properties\":{\"weight\":0.4}}],\"knows\":[{\"id\":7,\"inV\":2,\"properties\":{\"weight\":0.5}},{\"id\":8,\"inV\":4,\"properties\":{\"weight\":1.0}}]},\"properties\":{\"name\":[{\"id\":[{\"@class\":\"Long\"},0],\"value\":\"marko\"}],\"age\":[{\"id\":[{\"@class\":\"Long\"},1],\"value\":29}]}}\n" +
-                    "{\"id\":2,\"label\":\"person\",\"inE\":{\"knows\":[{\"id\":7,\"outV\":1,\"properties\":{\"weight\":0.5}}]},\"properties\":{\"name\":[{\"id\":[{\"@class\":\"Long\"},2],\"value\":\"vadas\"}],\"age\":[{\"id\":[{\"@class\":\"Long\"},3],\"value\":27}]}}\n" +
-                    "{\"id\":3,\"label\":\"software\",\"inE\":{\"created\":[{\"id\":9,\"outV\":1,\"properties\":{\"weight\":0.4}},{\"id\":11,\"outV\":4,\"properties\":{\"weight\":0.4}},{\"id\":12,\"outV\":6,\"properties\":{\"weight\":0.2}}]},\"properties\":{\"name\":[{\"id\":[{\"@class\":\"Long\"},4],\"value\":\"lop\"}],\"lang\":[{\"id\":[{\"@class\":\"Long\"},5],\"value\":\"java\"}]}}\n" +
-                    "{\"id\":4,\"label\":\"person\",\"inE\":{\"knows\":[{\"id\":8,\"outV\":1,\"properties\":{\"weight\":1.0}}]},\"outE\":{\"created\":[{\"id\":10,\"inV\":5,\"properties\":{\"weight\":1.0}},{\"id\":11,\"inV\":3,\"properties\":{\"weight\":0.4}}]},\"properties\":{\"name\":[{\"id\":[{\"@class\":\"Long\"},6],\"value\":\"josh\"}],\"age\":[{\"id\":[{\"@class\":\"Long\"},7],\"value\":32}]}}\n" +
-                    "{\"id\":5,\"label\":\"software\",\"inE\":{\"created\":[{\"id\":10,\"outV\":4,\"properties\":{\"weight\":1.0}}]},\"properties\":{\"name\":[{\"id\":[{\"@class\":\"Long\"},8],\"value\":\"ripple\"}],\"lang\":[{\"id\":[{\"@class\":\"Long\"},9],\"value\":\"java\"}]}}\n" +
-                    "{\"id\":6,\"label\":\"person\",\"outE\":{\"created\":[{\"id\":12,\"inV\":3,\"properties\":{\"weight\":0.2}}]},\"properties\":{\"name\":[{\"id\":[{\"@class\":\"Long\"},10],\"value\":\"peter\"}],\"age\":[{\"id\":[{\"@class\":\"Long\"},11],\"value\":35}]}}\n");
-
-        }
-    }
-
-    @Test
-    public void shouldSerializeTinkerGraphToGraphSONWithoutTypes() throws IOException {
-        GraphWriter writer = getWriter(noTypesMapperV2d0);
-        try (final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            writer.writeGraph(out, baseModern);
-            String json = out.toString();
-            assertEquals(json, "{\"id\":1,\"label\":\"person\",\"outE\":{\"created\":[{\"id\":9,\"inV\":3,\"properties\":{\"weight\":0.4}}],\"knows\":[{\"id\":7,\"inV\":2,\"properties\":{\"weight\":0.5}},{\"id\":8,\"inV\":4,\"properties\":{\"weight\":1.0}}]},\"properties\":{\"name\":[{\"id\":0,\"value\":\"marko\"}],\"age\":[{\"id\":1,\"value\":29}]}}\n" +
-                    "{\"id\":2,\"label\":\"person\",\"inE\":{\"knows\":[{\"id\":7,\"outV\":1,\"properties\":{\"weight\":0.5}}]},\"properties\":{\"name\":[{\"id\":2,\"value\":\"vadas\"}],\"age\":[{\"id\":3,\"value\":27}]}}\n" +
-                    "{\"id\":3,\"label\":\"software\",\"inE\":{\"created\":[{\"id\":9,\"outV\":1,\"properties\":{\"weight\":0.4}},{\"id\":11,\"outV\":4,\"properties\":{\"weight\":0.4}},{\"id\":12,\"outV\":6,\"properties\":{\"weight\":0.2}}]},\"properties\":{\"name\":[{\"id\":4,\"value\":\"lop\"}],\"lang\":[{\"id\":5,\"value\":\"java\"}]}}\n" +
-                    "{\"id\":4,\"label\":\"person\",\"inE\":{\"knows\":[{\"id\":8,\"outV\":1,\"properties\":{\"weight\":1.0}}]},\"outE\":{\"created\":[{\"id\":10,\"inV\":5,\"properties\":{\"weight\":1.0}},{\"id\":11,\"inV\":3,\"properties\":{\"weight\":0.4}}]},\"properties\":{\"name\":[{\"id\":6,\"value\":\"josh\"}],\"age\":[{\"id\":7,\"value\":32}]}}\n" +
-                    "{\"id\":5,\"label\":\"software\",\"inE\":{\"created\":[{\"id\":10,\"outV\":4,\"properties\":{\"weight\":1.0}}]},\"properties\":{\"name\":[{\"id\":8,\"value\":\"ripple\"}],\"lang\":[{\"id\":9,\"value\":\"java\"}]}}\n" +
-                    "{\"id\":6,\"label\":\"person\",\"outE\":{\"created\":[{\"id\":12,\"inV\":3,\"properties\":{\"weight\":0.2}}]},\"properties\":{\"name\":[{\"id\":10,\"value\":\"peter\"}],\"age\":[{\"id\":11,\"value\":35}]}}\n");
-        }
-    }
-
-    @Test
     public void shouldDeserializeGraphSONIntoTinkerGraphWithPartialTypes() throws IOException {
         GraphWriter writer = getWriter(defaultMapperV2d0);
         GraphReader reader = getReader(defaultMapperV2d0);
