@@ -18,7 +18,12 @@
  */
 package org.apache.tinkerpop.gremlin.tinkergraph.structure;
 
+import org.apache.tinkerpop.gremlin.structure.Edge;
+import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.Property;
+import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.apache.tinkerpop.gremlin.structure.io.GraphReader;
 import org.apache.tinkerpop.gremlin.structure.io.GraphWriter;
 import org.apache.tinkerpop.gremlin.structure.io.IoTest;
@@ -34,9 +39,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.Iterator;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 
 public class TinkerGraphGraphSONSerializerV2d0Test {
@@ -55,6 +63,9 @@ public class TinkerGraphGraphSONSerializerV2d0Test {
             .addRegistry(TinkerIoRegistryV2d0.getInstance())
             .create();
 
+    /**
+     * Checks that the graph has been fully ser/deser with types.
+     */
     @Test
     public void shouldDeserializeGraphSONIntoTinkerGraphWithPartialTypes() throws IOException {
         GraphWriter writer = getWriter(defaultMapperV2d0);
@@ -68,6 +79,9 @@ public class TinkerGraphGraphSONSerializerV2d0Test {
         }
     }
 
+    /**
+     * Checks that the graph has been fully ser/deser without types.
+     */
     @Test
     public void shouldDeserializeGraphSONIntoTinkerGraphWithoutTypes() throws IOException {
         GraphWriter writer = getWriter(noTypesMapperV2d0);
@@ -81,6 +95,104 @@ public class TinkerGraphGraphSONSerializerV2d0Test {
         }
     }
 
+    /**
+     * Thorough types verification for Vertex ids, Vertex props, Edge ids, Edge props
+     */
+    @Test
+    public void shouldDeserializeGraphSONIntoTinkerGraphKeepingTypes() throws IOException {
+        GraphWriter writer = getWriter(defaultMapperV2d0);
+        GraphReader reader = getReader(defaultMapperV2d0);
+        Vertex v1 = baseModern.addVertex(T.id, 100L, "name", "kevin", "uuid", UUID.randomUUID());
+        v1.addEdge("hello", baseModern.traversal().V().has("name", "marko").next(), T.id, 101L,
+                "uuid", UUID.randomUUID());
+        try (final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            writer.writeGraph(out, baseModern);
+            String json = out.toString();
+            TinkerGraph read = TinkerGraph.open();
+            reader.readGraph(new ByteArrayInputStream(json.getBytes()), read);
+            assertTrue(approximateGraphsCheck(baseModern, read));
+        }
+    }
+
+    /**
+     * Asserts the approximateGraphsChecks function fails when expected. Vertex ids.
+     */
+    @Test
+    public void shouldLooseTypesWithGraphSONNoTypesForVertexIds() throws IOException {
+        GraphWriter writer = getWriter(noTypesMapperV2d0);
+        GraphReader reader = getReader(noTypesMapperV2d0);
+        baseModern.addVertex(T.id, 100L, "name", "kevin");
+        try (final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            writer.writeGraph(out, baseModern);
+            String json = out.toString();
+            TinkerGraph read = TinkerGraph.open();
+            reader.readGraph(new ByteArrayInputStream(json.getBytes()), read);
+            // Should fail on deserialized vertex Id.
+            assertFalse(approximateGraphsCheck(baseModern, read));
+        }
+    }
+
+    /**
+     * Asserts the approximateGraphsChecks function fails when expected. Vertex props.
+     */
+    @Test
+    public void shouldLooseTypesWithGraphSONNoTypesForVertexProps() throws IOException {
+        GraphWriter writer = getWriter(noTypesMapperV2d0);
+        GraphReader reader = getReader(noTypesMapperV2d0);
+        baseModern.addVertex(T.id, 100, "name", "kevin", "uuid", UUID.randomUUID());
+        try (final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            writer.writeGraph(out, baseModern);
+            String json = out.toString();
+            TinkerGraph read = TinkerGraph.open();
+            reader.readGraph(new ByteArrayInputStream(json.getBytes()), read);
+            // Should fail on deserialized vertex prop.
+            assertFalse(approximateGraphsCheck(baseModern, read));
+        }
+    }
+
+    /**
+     * Asserts the approximateGraphsChecks function fails when expected. Edge ids.
+     */
+    @Test
+    public void shouldLooseTypesWithGraphSONNoTypesForEdgeIds() throws IOException {
+        GraphWriter writer = getWriter(noTypesMapperV2d0);
+        GraphReader reader = getReader(noTypesMapperV2d0);
+        Vertex v1 = baseModern.addVertex(T.id, 100, "name", "kevin");
+        v1.addEdge("hello", baseModern.traversal().V().has("name", "marko").next(), T.id, 101L);
+        try (final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            writer.writeGraph(out, baseModern);
+            String json = out.toString();
+            TinkerGraph read = TinkerGraph.open();
+            reader.readGraph(new ByteArrayInputStream(json.getBytes()), read);
+            // Should fail on deserialized edge Id.
+            assertFalse(approximateGraphsCheck(baseModern, read));
+        }
+    }
+
+    /**
+     * Asserts the approximateGraphsChecks function fails when expected. Edge props.
+     */
+    @Test
+    public void shouldLooseTypesWithGraphSONNoTypesForEdgeProps() throws IOException {
+        GraphWriter writer = getWriter(noTypesMapperV2d0);
+        GraphReader reader = getReader(noTypesMapperV2d0);
+        Vertex v1 = baseModern.addVertex(T.id, 100, "name", "kevin");
+        v1.addEdge("hello", baseModern.traversal().V().has("name", "marko").next(), T.id, 101,
+                "uuid", UUID.randomUUID());
+        try (final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            writer.writeGraph(out, baseModern);
+            String json = out.toString();
+            TinkerGraph read = TinkerGraph.open();
+            reader.readGraph(new ByteArrayInputStream(json.getBytes()), read);
+            // Should fail on deserialized edge prop.
+            assertFalse(approximateGraphsCheck(baseModern, read));
+        }
+    }
+
+    /**
+     * Those kinds of types are declared differently in the GraphSON type deserializer, check that all are handled
+     * properly.
+     */
     @Test
     public void shouldKeepTypesWhenDeserializingSerializedTinkerGraph() throws IOException {
         TinkerGraph tg = TinkerGraph.open();
@@ -121,5 +233,60 @@ public class TinkerGraphGraphSONSerializerV2d0Test {
 
     private GraphReader getReader(Mapper paramMapper) {
         return GraphSONReader.build().mapper(paramMapper).create();
+    }
+
+    /**
+     * Checks sequentially vertices and egdes of both graphs. Will check sequentially Vertex IDs, Vertex Properties IDs
+     * and values and classes. Then same for edges. To use when serializing a Graph and deserializing the supposedly
+     * same Graph.
+     */
+    private boolean approximateGraphsCheck(Graph g1, Graph g2) {
+        Iterator<Vertex> itV = g1.vertices();
+        Iterator<Vertex> itVRead = g2.vertices();
+
+        while (itV.hasNext()) {
+            Vertex v = itV.next();
+            Vertex vRead = itVRead.next();
+
+            // Will only check IDs but that's 'good' enough.
+            if (!v.equals(vRead)) {
+                return false;
+            }
+
+            Iterator itVP = v.properties();
+            Iterator itVPRead = vRead.properties();
+            while (itVP.hasNext()) {
+                VertexProperty vp = (VertexProperty) itVP.next();
+                VertexProperty vpRead = (VertexProperty) itVPRead.next();
+                if (!vp.value().equals(vpRead.value())
+                        || !vp.equals(vpRead)) {
+                    return false;
+                }
+            }
+        }
+
+        Iterator<Edge> itE = g1.edges();
+        Iterator<Edge> itERead = g2.edges();
+
+        while (itE.hasNext()) {
+            Edge e = itE.next();
+            Edge eRead = itERead.next();
+            // Will only check IDs but that's good enough.
+            if (!e.equals(eRead)) {
+                return false;
+            }
+
+            Iterator itEP = e.properties();
+            Iterator itEPRead = eRead.properties();
+            while (itEP.hasNext()) {
+                Property ep = (Property) itEP.next();
+                Property epRead = (Property) itEPRead.next();
+                if (!ep.value().equals(epRead.value())
+                        || !ep.equals(epRead)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
