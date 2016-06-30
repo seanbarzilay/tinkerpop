@@ -22,6 +22,7 @@ package org.apache.tinkerpop.gremlin.spark.process.computer.traversal.strategy.o
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.tinkerpop.gremlin.hadoop.structure.io.VertexWritable;
+import org.apache.tinkerpop.gremlin.process.computer.ProgramPhase;
 import org.apache.tinkerpop.gremlin.process.computer.traversal.MemoryTraversalSideEffects;
 import org.apache.tinkerpop.gremlin.process.computer.traversal.TraversalVertexProgram;
 import org.apache.tinkerpop.gremlin.process.traversal.NumberHelper;
@@ -40,6 +41,7 @@ import org.apache.tinkerpop.gremlin.process.traversal.step.map.MeanGlobalStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.map.MinGlobalStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.map.SumGlobalStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.util.ReducingBarrierStep;
+import org.apache.tinkerpop.gremlin.process.traversal.strategy.verification.ComputerVerificationStrategy;
 import org.apache.tinkerpop.gremlin.process.traversal.traverser.TraverserRequirement;
 import org.apache.tinkerpop.gremlin.process.traversal.traverser.util.TraverserSet;
 import org.apache.tinkerpop.gremlin.process.traversal.util.TraversalHelper;
@@ -72,10 +74,11 @@ public final class SparkStarBarrierInterceptor implements SparkVertexProgramInte
         final ReducingBarrierStep endStep = (ReducingBarrierStep) traversal.getEndStep(); // needed for the final traverser generation
         traversal.removeStep(0);                                    // remove GraphStep
         traversal.removeStep(traversal.getSteps().size() - 1);      // remove ReducingBarrierStep
+        traversal.setStrategies(traversal.clone().getStrategies().removeStrategies(ComputerVerificationStrategy.class)); // no longer a computer job, but parallel standard jobs
         traversal.applyStrategies();                                // compile
         boolean identityTraversal = traversal.getSteps().isEmpty(); // if the traversal is empty, just return the vertex (fast)
         ///////////////////////////////
-        MemoryTraversalSideEffects.setMemorySideEffects(traversal, memory, MemoryTraversalSideEffects.State.EXECUTE); // any intermediate sideEffect steps are backed by SparkMemory
+        MemoryTraversalSideEffects.setMemorySideEffects(traversal, memory, ProgramPhase.EXECUTE); // any intermediate sideEffect steps are backed by SparkMemory
         memory.setInExecute(true);
         final JavaRDD<Traverser.Admin<Object>> nextRDD = inputRDD.values()
                 .filter(vertexWritable -> ElementHelper.idExists(vertexWritable.get().id(), graphStepIds)) // ensure vertex ids are in V(x)
@@ -125,7 +128,6 @@ public final class SparkStarBarrierInterceptor implements SparkVertexProgramInte
                 }
             }).fold(endStep.getSeedSupplier().get(), biOperator::apply);
         } else if (endStep instanceof GroupStep) {
-            ((GroupStep) endStep).onGraphComputer();
             final GroupStep.GroupBiOperator<Object, Object> biOperator = (GroupStep.GroupBiOperator) endStep.getBiOperator();
             result = ((GroupStep) endStep).generateFinalResult(nextRDD.
                     mapPartitions(partitions -> {

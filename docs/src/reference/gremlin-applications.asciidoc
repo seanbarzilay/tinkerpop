@@ -549,7 +549,10 @@ To enable the remote to connect with a session the `connect` argument takes anot
 ----
 
 With the above command a session gets created with a random UUID for a session identifier. It is also possible to
-assign a custom session identifier by adding it as the last argument to `:remote` command above.
+assign a custom session identifier by adding it as the last argument to `:remote` command above. There is also the
+option to replace "session" with "session-managed" to create a session that will auto-manage transactions (i.e. each
+request will occur within the bounds of a transaction). In this way, the state of bound variables between requests are
+maintained, but the need to manually managed the transactional scope of the graph is no longer required.
 
 [[console-remote-console]]
 Remote Console
@@ -979,8 +982,8 @@ run Gremlin Server with Ganglia monitoring, download the `org.acplt:oncrpc` jar 
 link:http://repo1.maven.org/maven2/org/acplt/oncrpc/1.0.7/[here] and copy it to the Gremlin Server `/lib` directory
 before starting the server.
 
-Security
-^^^^^^^^
+Security and Execution
+^^^^^^^^^^^^^^^^^^^^^^
 
 image:gremlin-server-secure.png[width=175,float=right] Gremlin Server provides for several features that aid in the
 security of the graphs that it exposes.  It has built in SSL support and a pluggable authentication framework using
@@ -1151,6 +1154,7 @@ There are a number of pre-packaged `CustomizerProvider` implementations:
 |=========================================================
 |Customizer |Description
 |`CompileStaticCustomizerProvider` |Applies `CompileStatic` annotations to incoming scripts thus removing dynamic dispatch. More information about static compilation can be found in the link:http://docs.groovy-lang.org/latest/html/documentation/#_static_compilation[Groovy Documentation].  It is possible to configure this `CustomizerProvider` by specifying a comma separated list of link:http://docs.groovy-lang.org/latest/html/documentation/#Typecheckingextensions-Workingwithextensions[type checking extensions] that can have the effect of securing calls to various methods.
+|`ConfigurationCustomizerProvider` |Allows configuration of the the Groovy `CompilerConfiguration` object by taking a `Map` of key/value pairs where the "key" is a property to set on the `CompilerConfiguration`.
 |`ThreadInterruptCustomizerProvider` |Injects checks for thread interruption, thus allowing the thread to potentially respect calls to `Thread.interrupt()`
 |`TimedInterruptCustomizerProvider` |Injects checks into loops to interrupt them if they exceed the configured timeout in milliseconds.
 |`TypeCheckedCustomizerProvider` |Similar to the above mentioned, `CompileStaticCustomizerProvider`, the `TypeCheckedCustomizerProvider` injects `TypeChecked` annotations to incoming scripts.  More information on the nature of this annotation can be found in the link:http://docs.groovy-lang.org/latest/html/documentation/#_the_code_typechecked_code_annotation[Groovy Documentation].  It too takes a comma separated list of link:http://docs.groovy-lang.org/latest/html/documentation/#Typecheckingextensions-Workingwithextensions[type checking extensions].
