@@ -101,7 +101,7 @@ public class GraphSONMapper implements Mapper<ObjectMapper> {
                 final TypeResolverBuilder typer = new GraphSONTypeResolverBuilder()
                         .typesEmbedding(getTypeInfo())
                         .init(JsonTypeInfo.Id.CUSTOM, graphSONTypeIdResolver)
-                        .typeProperty(GraphSONTokens.CLASS);
+                        .typeProperty(GraphSONTokens.VALUETYPE);
 
                 // Register types to typeResolver for the GraphSON module
                 for (Map.Entry<String, Class> typeDeser : graphSONModule.getAddedDeserializers().entrySet()) {
