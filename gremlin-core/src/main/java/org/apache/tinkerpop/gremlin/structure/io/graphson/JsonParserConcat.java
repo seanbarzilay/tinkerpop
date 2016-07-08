@@ -72,7 +72,9 @@ public class JsonParserConcat extends JsonParserSequence {
                     return null;
                 }
                 // call getCurrentToken() instead of nextToken() in JsonParserSequence.
-                t = this.delegate.getCurrentToken();
+                t = this.delegate.getCurrentToken() == null
+                        ? this.nextToken()
+                        : this.getCurrentToken();
             } while (t == null);
 
             return t;

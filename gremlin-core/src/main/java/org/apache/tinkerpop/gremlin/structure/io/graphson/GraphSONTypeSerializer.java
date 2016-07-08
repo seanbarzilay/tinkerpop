@@ -39,11 +39,13 @@ public class GraphSONTypeSerializer extends TypeSerializer {
     private final TypeIdResolver idRes;
     private final String propertyName;
     private final TypeInfo typeInfo;
+    private final String valuePropertyName;
 
-    GraphSONTypeSerializer(TypeIdResolver idRes, String propertyName, TypeInfo typeInfo) {
+    GraphSONTypeSerializer(TypeIdResolver idRes, String propertyName, TypeInfo typeInfo, String valuePropertyName) {
         this.idRes = idRes;
         this.propertyName = propertyName;
         this.typeInfo = typeInfo;
+        this.valuePropertyName = valuePropertyName;
     }
 
     @Override
@@ -148,13 +150,12 @@ public class GraphSONTypeSerializer extends TypeSerializer {
     }
 
     private void writeTypePrefix(JsonGenerator jsonGenerator, String s) throws IOException {
-        jsonGenerator.writeStartArray();
         jsonGenerator.writeStartObject();
         jsonGenerator.writeStringField(this.getPropertyName(), s);
-        jsonGenerator.writeEndObject();
+        jsonGenerator.writeFieldName(this.valuePropertyName);
     }
 
     private void writeTypeSuffix(JsonGenerator jsonGenerator) throws IOException {
-        jsonGenerator.writeEndArray();
+        jsonGenerator.writeEndObject();
     }
 }

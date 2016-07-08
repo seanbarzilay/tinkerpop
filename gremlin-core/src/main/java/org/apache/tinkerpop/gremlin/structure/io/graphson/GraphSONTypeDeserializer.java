@@ -44,6 +44,7 @@ import java.util.Map;
 public class GraphSONTypeDeserializer extends TypeDeserializerBase {
     private final TypeIdResolver idRes;
     private final String propertyName;
+    private final String valuePropertyName;
     private final JavaType baseType;
     private final TypeInfo typeInfo;
 
@@ -52,12 +53,13 @@ public class GraphSONTypeDeserializer extends TypeDeserializerBase {
 
 
     GraphSONTypeDeserializer(JavaType baseType, TypeIdResolver idRes, String typePropertyName,
-                             TypeInfo typeInfo){
+                             TypeInfo typeInfo, String valuePropertyName){
         super(baseType, idRes, typePropertyName, false, null);
         this.baseType = baseType;
         this.idRes = idRes;
         this.propertyName = typePropertyName;
         this.typeInfo = typeInfo;
+        this.valuePropertyName = valuePropertyName;
     }
 
     @Override
@@ -106,59 +108,78 @@ public class GraphSONTypeDeserializer extends TypeDeserializerBase {
      */
     private Object deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
         TokenBuffer buf = new TokenBuffer(jsonParser.getCodec(), false);
+        TokenBuffer localCopy = new TokenBuffer(jsonParser.getCodec(), false);
 
         // Detect type
         try {
-            // The Type pattern is START_ARRAY -> START_OBJECT -> TEXT_FIELD(propertyName).
-            if (jsonParser.getCurrentToken() == JsonToken.START_ARRAY) {
-                buf.writeStartArray();
-                JsonToken t1 = jsonParser.nextToken();
+            // The Type pattern is START_OBJECT -> TEXT_FIELD(propertyName) -> TEXT_FIELD(valueProp).
+            if (jsonParser.getCurrentToken() == JsonToken.START_OBJECT) {
+                buf.writeStartObject();
+                String typeName = null;
+                boolean valueCalled = false;
 
-                if (t1 == JsonToken.START_OBJECT) {
-                    buf.writeStartObject();
+                for (int i = 0; i < 2; i++) {
                     String nextFieldName = jsonParser.nextFieldName();
-
-                    if (nextFieldName != null) {
-                        if (nextFieldName.equals(propertyName)) {
-                            // Detected type pattern
-                            // Find deserializer
-                            // Deserialize with deserializer
-                            String typeName = jsonParser.nextTextValue();
-                            JavaType typeFromId = idRes.typeFromId(typeName);
-
-                            // Detected a type and extracted the value, but still want to make sure that the extracted type
-                            // corresponds to what was given in parameter, if a type has been explicitly specified in param.
-                            if (!baseType.isJavaLangObject() && baseType != typeFromId) {
-                                throw new InstantiationException(
-                                        String.format("Cannot deserialize the value with the detected type contained in the JSON (\"%s\") " +
-                                                "to the type specified in parameter to the object mapper (%s). " +
-                                                "Those types are incompatible.", typeName, baseType.getRawClass().toString())
-                                );
-                            }
-
-                            JsonDeserializer jsonDeserializer = deserializationContext.findContextualValueDeserializer(typeFromId, null);
-
-                            // Position the next token right on the value
-                            if (jsonParser.nextToken() == JsonToken.END_OBJECT) {
-                                // Locate the cursor on the value to deser
-                                jsonParser.nextValue();
-                                Object value = jsonDeserializer.deserialize(jsonParser, deserializationContext);
-                                // IMPORTANT - Close the JSON ARRAY
-                                jsonParser.nextToken();
-                                return value;
-                            }
-                        }
+                    if (nextFieldName == null) {
+                        // empty map or less than 2 fields.
+                        break;
+                    }
+                    if (!nextFieldName.equals(this.propertyName) && !nextFieldName.equals(this.valuePropertyName)) {
+                        // no type, go out.
+                        break;
                     }
 
+                    if (nextFieldName.equals(this.propertyName)) {
+                        typeName = jsonParser.nextTextValue();
+                        // keeping the spare buffer up to date in case it's a false detection (only the "@type" property)
+                        buf.writeStringField(this.propertyName, typeName);
+                        continue;
+                    }
+                    if (nextFieldName.equals(this.valuePropertyName)) {
+                        jsonParser.nextValue();
+                        // keeping the spare buffer up to date in case it's a false detection (only the "@type" property)
+                        buf.writeFieldName(this.valuePropertyName);
+                        localCopy.copyCurrentStructure(jsonParser);
+                        valueCalled = true;
+                        continue;
+                    }
+                }
+
+                if (typeName != null && valueCalled) {
+                    // Type pattern detected.
+                    JavaType typeFromId = idRes.typeFromId(typeName);
+
+                    if (!baseType.isJavaLangObject() && baseType != typeFromId) {
+                        throw new InstantiationException(
+                                String.format("Cannot deserialize the value with the detected type contained in the JSON (\"%s\") " +
+                                        "to the type specified in parameter to the object mapper (%s). " +
+                                        "Those types are incompatible.", typeName, baseType.getRawClass().toString())
+                        );
+                    }
+
+                    JsonDeserializer jsonDeserializer = deserializationContext.findContextualValueDeserializer(typeFromId, null);
+
+                    JsonParser tokenParser = localCopy.asParser();
+                    tokenParser.nextToken();
+                    Object value = jsonDeserializer.deserialize(tokenParser, deserializationContext);
+
+                    JsonToken t = jsonParser.nextToken();
+                    if (t == JsonToken.END_OBJECT) {
+                        // we're good to go
+                        return value;
+                    } else {
+                        // detected the type pattern entirely but the Map contained other properties
+                        // For now we error out because we assume that pattern is *only* reserved to
+                        // typed values.
+                        throw deserializationContext.mappingException("Detected the type pattern in the JSON payload " +
+                                "but the map containing the types and values contains other fields. This is not " +
+                                "allowed by the deserializer.");
+                    }
                 }
             }
         } catch (Exception e) {
             throw deserializationContext.mappingException("Could not deserialize the JSON value as required. " + e.getMessage());
         }
-
-        JsonParser toUseParser;
-        JsonParser bufferParser = buf.asParser();
-        JsonToken t = bufferParser.nextToken();
 
         // While searching for the type pattern, we may have moved the cursor of the original JsonParser in param.
         // To compensate, we have filled consistently a TokenBuffer that should contain the equivalent of
@@ -166,12 +187,18 @@ public class GraphSONTypeDeserializer extends TypeDeserializerBase {
         // This has an huge positive impact on performances, since JsonParser does not have a 'rewind()',
         // the only other solution would have been to copy the whole original JsonParser. Which we avoid here and use
         // an efficient structure made of TokenBuffer + JsonParserSequence/Concat.
-        if (t != null)
-            toUseParser = JsonParserConcat.createFlattened(bufferParser, jsonParser);
 
-        // If the cursor hasn't been moved, no need to concatenate the original JsonParser with the TokenBuffer's one.
-        else
-            toUseParser = jsonParser;
+        // Concatenate buf + localCopy + end of Json
+
+        JsonParser toUseParser;
+        JsonParser bufferParser = buf.asParser();
+        JsonParser localCopyParser = localCopy.asParser();
+
+
+        JsonParser[] array = {bufferParser, localCopyParser, jsonParser};
+
+        toUseParser = new JsonParserConcat(array);
+        toUseParser.nextToken();
 
         // If a type has been specified in parameter :
         if (!baseType.isJavaLangObject()) {

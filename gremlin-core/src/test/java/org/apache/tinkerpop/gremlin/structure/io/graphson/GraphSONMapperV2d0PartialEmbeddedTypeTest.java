@@ -23,6 +23,7 @@ import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
 import java.time.Instant;
@@ -39,6 +40,7 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -161,8 +163,47 @@ public class GraphSONMapperV2d0PartialEmbeddedTypeTest {
 
         myList.add("kjkj");
         myList.add(UUID.randomUUID());
-
         assertEquals(myList, serializeDeserializeAuto(myList));
+
+        // no "@value" property
+        String s = "{\""+GraphSONTokens.VALUETYPE+"\":\"UUID\", \"test\":2}";
+        Map map = new LinkedHashMap<>();
+        map.put(GraphSONTokens.VALUETYPE, "UUID");
+        map.put("test", 2);
+        Object res = mapper.readValue(s, Object.class);
+        assertEquals(map, res);
+
+        // "@value" and "@type" property reversed
+        s = "{\""+GraphSONTokens.VALUEPROP+"\":2, \""+ GraphSONTokens.VALUETYPE+"\":\"Long\"}";
+        res = mapper.readValue(s, Object.class);
+        assertEquals(res, 2L);
+        assertEquals(res.getClass(), Long.class);
+
+        // no "@type" property.
+        s = "{\""+GraphSONTokens.VALUEPROP+"\":2, \"id\":2}";
+        map = new LinkedHashMap<>();
+        map.put(GraphSONTokens.VALUEPROP, 2);
+        map.put("id", 2);
+        res = mapper.readValue(s, Object.class);
+        assertEquals(res, map);
+    }
+
+    @Test
+    public void shouldFailIfMoreThanTwoPropertiesInATypePattern() {
+        String s = "{\"" + GraphSONTokens.VALUEPROP + "\":2, \"" + GraphSONTokens.VALUETYPE + "\":\"Long\", \"hello\": \"world\"}";
+        try {
+            mapper.readValue(s, Object.class);
+            fail("Should have failed deserializing because there's more than properties in the type.");
+        } catch (IOException e) {
+            assertThat(e.getMessage(), containsString("Detected the type pattern in the JSON payload but the map containing the types and values contains other fields. This is not allowed by the deserializer."));
+        }
+        s = "{\"" + GraphSONTokens.VALUETYPE + "\":\"Long\",\"" + GraphSONTokens.VALUEPROP + "\":2, \"hello\": \"world\"}";
+        try {
+            mapper.readValue(s, Object.class);
+            fail("Should have failed deserializing because there's more than properties in the type.");
+        } catch (IOException e) {
+            assertThat(e.getMessage(), containsString("Detected the type pattern in the JSON payload but the map containing the types and values contains other fields. This is not allowed by the deserializer."));
+        }
     }
 
     @Test

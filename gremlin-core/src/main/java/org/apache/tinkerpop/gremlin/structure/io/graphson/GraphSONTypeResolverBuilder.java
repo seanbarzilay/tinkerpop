@@ -39,21 +39,27 @@ import java.util.Collection;
 public class GraphSONTypeResolverBuilder extends StdTypeResolverBuilder {
 
     private TypeInfo typeInfo;
+    private String valuePropertyName;
 
     @Override
     public TypeDeserializer buildTypeDeserializer(DeserializationConfig config, JavaType baseType, Collection<NamedType> subtypes) {
         TypeIdResolver idRes = this.idResolver(config, baseType, subtypes, false, true);
-        return new GraphSONTypeDeserializer(baseType, idRes, this.getTypeProperty(), typeInfo);
+        return new GraphSONTypeDeserializer(baseType, idRes, this.getTypeProperty(), typeInfo, valuePropertyName);
     }
 
 
     @Override
     public TypeSerializer buildTypeSerializer(SerializationConfig config, JavaType baseType, Collection<NamedType> subtypes) {
         TypeIdResolver idRes = this.idResolver(config, baseType, subtypes, true, false);
-        return new GraphSONTypeSerializer(idRes, this.getTypeProperty(), typeInfo);
+        return new GraphSONTypeSerializer(idRes, this.getTypeProperty(), typeInfo, valuePropertyName);
     }
 
-    public StdTypeResolverBuilder typesEmbedding(TypeInfo typeInfo) {
+    public GraphSONTypeResolverBuilder valuePropertyName(String valuePropertyName) {
+        this.valuePropertyName = valuePropertyName;
+        return this;
+    }
+
+    public GraphSONTypeResolverBuilder typesEmbedding(TypeInfo typeInfo) {
         this.typeInfo = typeInfo;
         return this;
     }
