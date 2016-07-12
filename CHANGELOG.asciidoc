@@ -27,6 +27,7 @@ TinkerPop 3.2.1 (NOT OFFICIALLY RELEASED YET)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Introduced GraphSON 2.0.
+* Deprecated `embedTypes` on the builder for `GraphSONMapper`.
 * `PathProcessor` steps now have the ability (if configured through a strategy) to drop `Traverser` path segments.
 * `MatchStep` in OLTP has a lazy barrier to increase the probability of bulking.
 * Added `PathRetractionStrategy` which will remove labeled path segments that will no longer be referenced.
