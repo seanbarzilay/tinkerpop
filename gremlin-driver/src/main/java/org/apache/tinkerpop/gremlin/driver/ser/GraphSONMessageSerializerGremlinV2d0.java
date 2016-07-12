@@ -30,7 +30,7 @@ import java.nio.ByteBuffer;
  */
 public final class GraphSONMessageSerializerGremlinV2d0 extends AbstractGraphSONMessageSerializerV2d0 {
 
-    private static final String MIME_TYPE = SerTokens.MIME_GRAPHSON_V1D0;
+    private static final String MIME_TYPE = SerTokens.MIME_GRAPHSON_V2D0;
 
     private static byte[] header;
 
