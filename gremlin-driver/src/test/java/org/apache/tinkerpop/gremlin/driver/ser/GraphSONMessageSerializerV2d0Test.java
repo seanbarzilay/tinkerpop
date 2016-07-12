@@ -66,9 +66,9 @@ import static org.junit.Assert.fail;
  *
  * @author Stephen Mallette (http://stephen.genoprime.com)
  */
-public class GraphSONMessageSerializerV1d0Test {
+public class GraphSONMessageSerializerV2d0Test {
 
-    public static final GraphSONMessageSerializerV1d0 SERIALIZER = new GraphSONMessageSerializerV1d0();
+    public static final GraphSONMessageSerializerV2d0 SERIALIZER = new GraphSONMessageSerializerV2d0();
     private static final RequestMessage msg = RequestMessage.build("op")
             .overrideRequestId(UUID.fromString("2D62161B-9544-4F39-AF44-62EC49F9A595")).create();
     private static final ObjectMapper mapper = new ObjectMapper();
@@ -125,7 +125,7 @@ public class GraphSONMessageSerializerV1d0Test {
         funList.add(new FunObject("x"));
         funList.add(new FunObject("y"));
 
-        final String results = SERIALIZER.serializeResponseAsString(ResponseMessage.build(msg).result(funList.iterator()).create());
+        final String results = SERIALIZER.serializeResponseAsString(ResponseMessage.build(msg).result(funList).create());
         final JsonNode json = mapper.readTree(results);
 
         assertNotNull(json);
@@ -238,9 +238,9 @@ public class GraphSONMessageSerializerV1d0Test {
         final JsonNode edgeAsJson = converted.get(0);
         assertNotNull(edgeAsJson);
 
-        assertEquals(((Long) e.id()).intValue(), edgeAsJson.get(GraphSONTokens.ID).asLong());  // lossy
-        assertEquals(((Long) v1.id()).intValue(), edgeAsJson.get(GraphSONTokens.OUT).asLong());// lossy
-        assertEquals(((Long) v2.id()).intValue(), edgeAsJson.get(GraphSONTokens.IN).asLong()); // lossy
+        assertEquals(((Long) e.id()).longValue(), edgeAsJson.get(GraphSONTokens.ID).get(GraphSONTokens.VALUEPROP).asLong());
+        assertEquals(((Long) v1.id()).longValue(), edgeAsJson.get(GraphSONTokens.OUT).get(GraphSONTokens.VALUEPROP).asLong());
+        assertEquals(((Long) v2.id()).longValue(), edgeAsJson.get(GraphSONTokens.IN).get(GraphSONTokens.VALUEPROP).asLong());
         assertEquals(e.label(), edgeAsJson.get(GraphSONTokens.LABEL).asText());
         assertEquals(GraphSONTokens.EDGE, edgeAsJson.get(GraphSONTokens.TYPE).asText());
 

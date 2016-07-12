@@ -16,30 +16,24 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.tinkerpop.gremlin.structure.io.graphson;
+package org.apache.tinkerpop.gremlin.structure.util.star;
 
-/**
- * The set of available GraphSON versions.
- *
- * @author Stephen Mallette (http://stephen.genoprime.com)
- */
-public enum GraphSONVersion {
-    V1_0(GraphSONModule.GraphSONModuleV1d0.build(), "1.0"),
-    V2_0(GraphSONModule.GraphSONModuleV2d0.build(), "2.0");
+import org.apache.tinkerpop.gremlin.structure.Direction;
 
-    private final GraphSONModule.GraphSONModuleBuilder builder;
-    private final String versionNumber;
+public class DirectionalStarGraph {
+    private final Direction direction;
+    private final StarGraph starGraphToSerialize;
 
-    GraphSONVersion(final GraphSONModule.GraphSONModuleBuilder builder, final String versionNumber) {
-        this.builder = builder;
-        this.versionNumber = versionNumber;
+    public DirectionalStarGraph(final StarGraph starGraphToSerialize, final Direction direction) {
+        this.direction = direction;
+        this.starGraphToSerialize = starGraphToSerialize;
     }
 
-    public GraphSONModule.GraphSONModuleBuilder getBuilder() {
-        return builder;
+    public Direction getDirection() {
+        return direction;
     }
 
-    public String getVersion() {
-        return versionNumber;
+    public StarGraph getStarGraphToSerialize() {
+        return starGraphToSerialize;
     }
 }
