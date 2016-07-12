@@ -49,7 +49,7 @@ public class GraphSONMapperTest {
     public static Iterable<Object[]> data() {
         return Arrays.asList(new Object[][]{
                 {GraphSONMapper.build().version(GraphSONVersion.V1_0).embedTypes(false).create().createMapper()},
-                {GraphSONMapper.build().version(GraphSONVersion.V2_0).typeInfo(GraphSONMapper.TypeInfo.NO_TYPES).create().createMapper()},
+                {GraphSONMapper.build().version(GraphSONVersion.V2_0).typeInfo(TypeInfo.NO_TYPES).create().createMapper()},
         });
     }
 

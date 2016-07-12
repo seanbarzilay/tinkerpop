@@ -58,7 +58,7 @@ public class GraphSONMapperV2d0PartialEmbeddedTypeTest {
 
     private final ObjectMapper mapper = GraphSONMapper.build()
             .version(GraphSONVersion.V2_0)
-            .typeInfo(GraphSONMapper.TypeInfo.PARTIAL_TYPES)
+            .typeInfo(TypeInfo.PARTIAL_TYPES)
             .create()
             .createMapper();
 
@@ -267,7 +267,7 @@ public class GraphSONMapperV2d0PartialEmbeddedTypeTest {
     public void shouldLooseTypesInfoWithGraphSONNoType() throws Exception {
         ObjectMapper mapper = GraphSONMapper.build()
                 .version(GraphSONVersion.V2_0)
-                .typeInfo(GraphSONMapper.TypeInfo.NO_TYPES)
+                .typeInfo(TypeInfo.NO_TYPES)
                 .create()
                 .createMapper();
 

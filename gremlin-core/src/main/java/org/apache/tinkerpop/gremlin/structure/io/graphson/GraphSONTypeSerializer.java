@@ -18,7 +18,6 @@
  */
 package org.apache.tinkerpop.gremlin.structure.io.graphson;
 
-import org.apache.tinkerpop.gremlin.structure.io.graphson.GraphSONMapper.TypeInfo;
 import org.apache.tinkerpop.shaded.jackson.annotation.JsonTypeInfo;
 import org.apache.tinkerpop.shaded.jackson.core.JsonGenerator;
 import org.apache.tinkerpop.shaded.jackson.databind.BeanProperty;

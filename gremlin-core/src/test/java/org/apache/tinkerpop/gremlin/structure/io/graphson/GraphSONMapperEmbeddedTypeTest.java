@@ -52,7 +52,7 @@ public class GraphSONMapperEmbeddedTypeTest {
     public static Iterable<Object[]> data() {
         return Arrays.asList(new Object[][]{
                 {GraphSONMapper.build().version(GraphSONVersion.V1_0).embedTypes(true).create().createMapper()},
-                {GraphSONMapper.build().version(GraphSONVersion.V2_0).typeInfo(GraphSONMapper.TypeInfo.PARTIAL_TYPES).create()
+                {GraphSONMapper.build().version(GraphSONVersion.V2_0).typeInfo(TypeInfo.PARTIAL_TYPES).create()
                         .createMapper()},
         });
     }
@@ -141,7 +141,7 @@ public class GraphSONMapperEmbeddedTypeTest {
     public void shouldHandleMapWithTypesUsingEmbedTypeSetting() throws Exception {
         final ObjectMapper mapper = GraphSONMapper.build()
                 .version(GraphSONVersion.V1_0)
-                .typeInfo(GraphSONMapper.TypeInfo.PARTIAL_TYPES)
+                .typeInfo(TypeInfo.PARTIAL_TYPES)
                 .create()
                 .createMapper();
 
@@ -158,7 +158,7 @@ public class GraphSONMapperEmbeddedTypeTest {
     public void shouldNotHandleMapWithTypesUsingEmbedTypeSetting() throws Exception {
         final ObjectMapper mapper = GraphSONMapper.build()
                 .version(GraphSONVersion.V1_0)
-                .typeInfo(GraphSONMapper.TypeInfo.NO_TYPES)
+                .typeInfo(TypeInfo.NO_TYPES)
                 .create()
                 .createMapper();
 

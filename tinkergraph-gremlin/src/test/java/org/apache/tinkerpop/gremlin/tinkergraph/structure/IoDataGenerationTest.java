@@ -32,6 +32,7 @@ import org.apache.tinkerpop.gremlin.structure.io.graphml.GraphMLWriter;
 import org.apache.tinkerpop.gremlin.structure.io.graphson.GraphSONMapper;
 import org.apache.tinkerpop.gremlin.structure.io.graphson.GraphSONVersion;
 import org.apache.tinkerpop.gremlin.structure.io.graphson.GraphSONWriter;
+import org.apache.tinkerpop.gremlin.structure.io.graphson.TypeInfo;
 import org.apache.tinkerpop.gremlin.structure.io.gryo.GryoReader;
 import org.apache.tinkerpop.gremlin.structure.io.gryo.GryoWriter;
 import org.junit.BeforeClass;
@@ -202,7 +203,7 @@ public class IoDataGenerationTest {
     @Test
     public void shouldWriteClassicGraphAsGraphSONV2d0NoTypes() throws IOException {
         final OutputStream os = new FileOutputStream(tempPath + "tinkerpop-classic-v2d0.json");
-        GraphSONWriter.build().mapper(GraphSONMapper.build().version(GraphSONVersion.V2_0).typeInfo(GraphSONMapper.TypeInfo.NO_TYPES).create()).create()
+        GraphSONWriter.build().mapper(GraphSONMapper.build().version(GraphSONVersion.V2_0).typeInfo(TypeInfo.NO_TYPES).create()).create()
                 .writeGraph(os, TinkerFactory.createClassic());
         os.close();
     }
@@ -213,7 +214,7 @@ public class IoDataGenerationTest {
     @Test
     public void shouldWriteModernGraphAsGraphSOV2d0NNoTypes() throws IOException {
         final OutputStream os = new FileOutputStream(tempPath + "tinkerpop-modern-v2d0.json");
-        GraphSONWriter.build().mapper(GraphSONMapper.build().version(GraphSONVersion.V2_0).typeInfo(GraphSONMapper.TypeInfo.NO_TYPES).create()).create()
+        GraphSONWriter.build().mapper(GraphSONMapper.build().version(GraphSONVersion.V2_0).typeInfo(TypeInfo.NO_TYPES).create()).create()
                 .writeGraph(os, TinkerFactory.createModern());
         os.close();
     }
@@ -224,7 +225,7 @@ public class IoDataGenerationTest {
     @Test
     public void shouldWriteCrewGraphAsGraphSONV2d0NoTypes() throws IOException {
         final OutputStream os = new FileOutputStream(tempPath + "tinkerpop-crew-v2d0.json");
-        GraphSONWriter.build().mapper(GraphSONMapper.build().version(GraphSONVersion.V2_0).typeInfo(GraphSONMapper.TypeInfo.NO_TYPES).create()).create()
+        GraphSONWriter.build().mapper(GraphSONMapper.build().version(GraphSONVersion.V2_0).typeInfo(TypeInfo.NO_TYPES).create()).create()
                 .writeGraph(os, TinkerFactory.createTheCrew());
         os.close();
     }
@@ -235,7 +236,7 @@ public class IoDataGenerationTest {
     @Test
     public void shouldWriteClassicGraphNormalizedAsGraphSONV2d0() throws IOException {
         final OutputStream os = new FileOutputStream(tempPath + "tinkerpop-classic-normalized-v2d0.json");
-        GraphSONWriter.build().mapper(GraphSONMapper.build().version(GraphSONVersion.V2_0).typeInfo(GraphSONMapper.TypeInfo.NO_TYPES).normalize(true).create()).create()
+        GraphSONWriter.build().mapper(GraphSONMapper.build().version(GraphSONVersion.V2_0).typeInfo(TypeInfo.NO_TYPES).normalize(true).create()).create()
                 .writeGraph(os, TinkerFactory.createClassic());
         os.close();
     }
@@ -246,7 +247,7 @@ public class IoDataGenerationTest {
     @Test
     public void shouldWriteModernGraphNormalizedAsGraphSONV2d0() throws IOException {
         final OutputStream os = new FileOutputStream(tempPath + "tinkerpop-modern-normalized-v2d0.json");
-        GraphSONWriter.build().mapper(GraphSONMapper.build().version(GraphSONVersion.V2_0).typeInfo(GraphSONMapper.TypeInfo.NO_TYPES).normalize(true).create()).create()
+        GraphSONWriter.build().mapper(GraphSONMapper.build().version(GraphSONVersion.V2_0).typeInfo(TypeInfo.NO_TYPES).normalize(true).create()).create()
                 .writeGraph(os, TinkerFactory.createModern());
         os.close();
     }
@@ -358,7 +359,7 @@ public class IoDataGenerationTest {
 
         final OutputStream os3 = new FileOutputStream(tempPath + "grateful-dead-v2d0.json");
         GraphSONWriter.build().mapper(GraphSONMapper.build().version(GraphSONVersion.V2_0)
-                .typeInfo(GraphSONMapper.TypeInfo.NO_TYPES).create())
+                .typeInfo(TypeInfo.NO_TYPES).create())
                 .create()
                 .writeGraph(os3, g);
         os3.close();
@@ -373,7 +374,7 @@ public class IoDataGenerationTest {
 
         final OutputStream os6 = new FileOutputStream(tempPath + "grateful-dead-v2d0-typed.json");
         GraphSONWriter.build().mapper(GraphSONMapper.build().version(GraphSONVersion.V2_0)
-                .typeInfo(GraphSONMapper.TypeInfo.PARTIAL_TYPES).create())
+                .typeInfo(TypeInfo.PARTIAL_TYPES).create())
                 .create()
                 .writeGraph(os6, g);
         os6.close();

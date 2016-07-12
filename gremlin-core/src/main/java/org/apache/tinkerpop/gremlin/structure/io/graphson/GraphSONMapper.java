@@ -148,11 +148,6 @@ public class GraphSONMapper implements Mapper<ObjectMapper> {
         return this.typeInfo;
     }
 
-    public enum TypeInfo {
-        NO_TYPES,
-        PARTIAL_TYPES
-    }
-
     public static class Builder implements Mapper.Builder<Builder> {
         private List<SimpleModule> customModules = new ArrayList<>();
         private boolean loadCustomModules = false;
@@ -176,7 +171,7 @@ public class GraphSONMapper implements Mapper<ObjectMapper> {
         }
 
         /**
-         * Set the version of GraphSON to use.
+         * Set the version of GraphSON to use. The default is {@link GraphSONVersion#V1_0}.
          */
         public Builder version(final GraphSONVersion version) {
             this.version = version;

@@ -18,7 +18,6 @@
  */
 package org.apache.tinkerpop.gremlin.structure.io.graphson;
 
-import org.apache.tinkerpop.gremlin.structure.io.graphson.GraphSONMapper.TypeInfo;
 import org.apache.tinkerpop.shaded.jackson.databind.DeserializationConfig;
 import org.apache.tinkerpop.shaded.jackson.databind.JavaType;
 import org.apache.tinkerpop.shaded.jackson.databind.SerializationConfig;
