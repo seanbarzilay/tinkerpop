@@ -217,20 +217,35 @@ public class GraphSONMapper implements Mapper<ObjectMapper> {
         }
 
         /**
-         * Embeds Java types into generated JSON to clarify their origins.
+         * Embeds Java types into generated JSON to clarify their origins. Setting this value will override the value
+         * of {@link #typeInfo(TypeInfo)} where true will set it to {@link TypeInfo#PARTIAL_TYPES} and false will set
+         * it to {@link TypeInfo#NO_TYPES}.
+         *
+         * @deprecated As of release 3.2.1, replaced by {@link #typeInfo(TypeInfo)}.
          */
+        @Deprecated
         public Builder embedTypes(final boolean embedTypes) {
             this.embedTypes = embedTypes;
+            this.typeInfo = embedTypes ? TypeInfo.PARTIAL_TYPES : TypeInfo.NO_TYPES;
             return this;
         }
 
         /**
-         * Specify if the values are going to be typed or not, and at which level.
+         * Specify if the values are going to be typed or not, and at which level. Setting this value will override
+         * the value of {@link #embedTypes(boolean)} where {@link TypeInfo#PARTIAL_TYPES} will set it to true and
+         * {@link TypeInfo#NO_TYPES} will set it to false.
          *
          * The level can be NO_TYPES or PARTIAL_TYPES, and could be extended in the future.
          */
         public Builder typeInfo(final TypeInfo typeInfo) {
             this.typeInfo = typeInfo;
+            if (typeInfo.equals(TypeInfo.PARTIAL_TYPES))
+                this.embedTypes = true;
+            else if (typeInfo.equals(TypeInfo.NO_TYPES))
+                this.embedTypes = false;
+            else
+                throw new IllegalArgumentException("This value can only be set to PARTIAL_TYPES and NO_TYPES");
+
             return this;
         }
 

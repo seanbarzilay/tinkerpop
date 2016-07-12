@@ -230,6 +230,40 @@ public class GraphSONMapperV2d0PartialEmbeddedTypeTest {
     }
 
     @Test
+    public void shouldHandleMapWithTypesUsingEmbedTypeSetting() throws Exception {
+        final ObjectMapper mapper = GraphSONMapper.build()
+                .version(GraphSONVersion.V2_0)
+                .embedTypes(true)
+                .create()
+                .createMapper();
+
+        final Map<String,Object> m = new HashMap<>();
+        m.put("test", 100L);
+
+        final String json = mapper.writeValueAsString(m);
+        final Map read = mapper.readValue(json, HashMap.class);
+
+        assertEquals(100L, read.get("test"));
+    }
+
+    @Test
+    public void shouldNotHandleMapWithTypesUsingEmbedTypeSetting() throws Exception {
+        final ObjectMapper mapper = GraphSONMapper.build()
+                .version(GraphSONVersion.V2_0)
+                .embedTypes(false)
+                .create()
+                .createMapper();
+
+        final Map<String,Object> m = new HashMap<>();
+        m.put("test", 100L);
+
+        final String json = mapper.writeValueAsString(m);
+        final Map read = mapper.readValue(json, HashMap.class);
+
+        assertEquals(100, read.get("test"));
+    }
+
+    @Test
     public void shouldLooseTypesInfoWithGraphSONNoType() throws Exception {
         ObjectMapper mapper = GraphSONMapper.build()
                 .version(GraphSONVersion.V2_0)
